@@ -101,14 +101,14 @@ button,input,textarea,select{font:inherit}.app{display:grid;grid-template-column
   </section>
 
   <section class="view" id="view-spelling">
-    <div class="top"><div><h1>拼写急救</h1><p>优先训练你真正会写进作文、但容易拼错的词。</p></div><div class="switch"><button class="active" data-spellmode="cue">中文→英文</button><button data-spellmode="audio">听写</button></div></div>
+    <div class="top"><div><h1>拼写急救</h1><p>输入后按 Enter 检查；检查完再按一次 Enter 直接进入下一题。</p></div><div class="switch"><button class="active" data-spellmode="cue">中文→英文</button><button data-spellmode="audio">听写</button></div></div>
     <div class="card trainer">
       <div class="small muted" id="spellMeta"></div>
       <div class="promptbox"><div class="zh" id="spellCue"></div><div id="audioWrap" style="display:none;text-align:center;margin-top:12px"><button class="btn secondary" id="speakBtn">▶ 再听一次</button></div></div>
       <input class="answer" id="spellInput" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="输入英文拼写后按 Enter"/>
       <div class="review-row"><button class="btn" id="checkSpell">检查</button><button class="btn ghost" id="revealSpell">显示答案</button></div>
       <div class="feedback" id="spellFeedback"></div>
-      <div class="review-row" id="spellGrade" style="display:none"><button class="btn bad" data-grade="again">Again</button><button class="btn warn" data-grade="hard">Hard</button><button class="btn good" data-grade="good">Good</button><button class="btn" data-grade="easy">Easy</button></div>
+      <div id="spellGrade" style="display:none"></div>
     </div>
   </section>
 
@@ -238,12 +238,34 @@ $('#sourceFilter').onchange=e=>{state.settings.sourceFilter=e.target.value;reset
 
 // spelling
 let spellCard,chunkCard,sentenceCard,logicCard,exampleCard;
-function loadSpell(){spellCard=pick('spelling');if(!spellCard){showEmpty($('#spellMeta'),$('#spellCue'),$('#spellInput'),$('#spellFeedback'),$('#spellGrade'),'拼写');return}$('#spellMeta').innerHTML=`<span class="tag source">${escapeHtml(spellCard.sourcePack||'核心基础')}</span> ${(spellCard.tags||[]).map(x=>escapeHtml(x)).join(' · ')}`;$('#spellCue').textContent=state.settings.spellMode==='audio'?'点击播放，只靠听觉写出单词。':spellCard.front;$('#audioWrap').style.display=state.settings.spellMode==='audio'?'block':'none';$('#spellInput').value='';$('#spellFeedback').className='feedback';$('#spellGrade').style.display='none';if(state.settings.spellMode==='audio')setTimeout(()=>speak(spellCard.answer),180)}
+function loadSpell(){spellCard=pick('spelling');if(!spellCard){showEmpty($('#spellMeta'),$('#spellCue'),$('#spellInput'),$('#spellFeedback'),$('#spellGrade'),'拼写');return}$('#spellMeta').innerHTML=`<span class="tag source">${escapeHtml(spellCard.sourcePack||'核心基础')}</span> ${(spellCard.tags||[]).map(x=>escapeHtml(x)).join(' · ')}`;$('#spellCue').textContent=state.settings.spellMode==='audio'?'点击播放，只靠听觉写出单词。':spellCard.front;$('#audioWrap').style.display=state.settings.spellMode==='audio'?'block':'none';$('#spellInput').value='';$('#spellFeedback').className='feedback';$('#spellFeedback').dataset.checked='0';$('#spellFeedback').innerHTML='';$('#spellGrade').style.display='none';if(state.settings.spellMode==='audio')setTimeout(()=>speak(spellCard.answer),180)}
 function speak(t){if(!('speechSynthesis'in window))return alert('当前浏览器不支持语音播放');speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='en-GB';u.rate=.78;speechSynthesis.speak(u)}
 $('#speakBtn').onclick=()=>spellCard&&speak(spellCard.answer);$$('[data-spellmode]').forEach(b=>b.onclick=()=>{state.settings.spellMode=b.dataset.spellmode;$$('[data-spellmode]').forEach(x=>x.classList.toggle('active',x===b));save();loadSpell()});
 function flagSpellingError(c){if(!c)return false;const st=c.stats||(c.stats=freshStats());if(st.inError)return false;st.inError=true;st.firstWrongAt=Date.now();save();return true}
-function spellCheck(reveal=false){if(!spellCard)return;const v=$('#spellInput').value;const ok=norm(v)===norm(spellCard.answer);const sim=similarity(v,spellCard.answer);const newlyFlagged=!reveal&&!!norm(v)&&!ok?flagSpellingError(spellCard):false;const f=$('#spellFeedback');f.className='feedback show '+(ok?'good':'bad');f.innerHTML=ok?`✓ 正确。<b>${escapeHtml(spellCard.answer)}</b>`:`${reveal?'参考答案':'还差一点'}：<b>${escapeHtml(spellCard.answer)}</b><div class="small" style="margin-top:6px">相似度 ${Math.max(0,Math.round(sim*100))}% · ${escapeHtml(spellCard.note||'')}</div>${newlyFlagged?'<div class="small" style="margin-top:6px"><b>已加入拼写错题单</b></div>':''}`;$('#spellGrade').style.display='flex';f.dataset.auto=ok?'1':'0'}
-$('#checkSpell').onclick=()=>spellCheck(false);$('#revealSpell').onclick=()=>spellCheck(true);$('#spellInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();spellCheck(false)}});$('#spellGrade').onclick=e=>{if(e.target.dataset.grade){mark(spellCard,e.target.dataset.grade,$('#spellFeedback').dataset.auto==='1');loadSpell()}}
+function spellCheck(reveal=false){
+  if(!spellCard)return;
+  const input=$('#spellInput'),f=$('#spellFeedback');
+  if(f.dataset.checked==='1')return;
+  const v=input.value;
+  const ok=!reveal&&norm(v)===norm(spellCard.answer);
+  const newlyFlagged=!reveal&&!!norm(v)&&!ok?flagSpellingError(spellCard):false;
+  f.className='feedback show '+(ok?'good':'bad');
+  f.innerHTML=ok
+    ? `<b>${escapeHtml(spellCard.answer)}</b><div class="small" style="margin-top:5px">Enter → 下一题</div>`
+    : `<b>${escapeHtml(spellCard.answer)}</b><div class="small" style="margin-top:5px">${escapeHtml(spellCard.note||'')} · Enter → 下一题</div>${newlyFlagged?'<div class="small" style="margin-top:5px">已加入拼写错题单</div>':''}`;
+  f.dataset.checked='1';
+  f.dataset.auto=ok?'1':'0';
+  mark(spellCard,ok?'good':'again',ok);
+}
+function nextSpell(){loadSpell();setTimeout(()=>$('#spellInput').focus(),0)}
+$('#checkSpell').onclick=()=>spellCheck(false);
+$('#revealSpell').onclick=()=>spellCheck(true);
+$('#spellInput').addEventListener('keydown',e=>{
+  if(e.key!=='Enter')return;
+  e.preventDefault();
+  if($('#spellFeedback').dataset.checked==='1')nextSpell();
+  else spellCheck(false);
+});
 
 // chunks
 function loadChunk(){chunkCard=pick('chunk');if(!chunkCard){showEmpty($('#chunkMeta'),$('#chunkCue'),$('#chunkInput'),$('#chunkFeedback'),$('#chunkGrade'),'词块');return}$('#chunkMeta').innerHTML=`<span class="tag source">${escapeHtml(chunkCard.sourcePack||'核心基础')}</span> ${(chunkCard.tags||[]).map(x=>escapeHtml(x)).join(' · ')}`;$('#chunkCue').textContent=chunkCard.front;$('#chunkInput').value='';$('#chunkFeedback').className='feedback';$('#chunkGrade').style.display='none'}
