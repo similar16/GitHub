@@ -249,10 +249,13 @@ function spellCheck(reveal=false){
   const v=input.value;
   const ok=!reveal&&norm(v)===norm(spellCard.answer);
   const newlyFlagged=!reveal&&!!norm(v)&&!ok?flagSpellingError(spellCard):false;
+  const meaning=state.settings.spellMode==='audio'
+    ? `<div style="margin-top:9px;padding-top:8px;border-top:1px dashed currentColor"><b>详细翻译：</b>${escapeHtml(spellCard.front||'')}</div>`
+    : '';
   f.className='feedback show '+(ok?'good':'bad');
   f.innerHTML=ok
-    ? `<b>${escapeHtml(spellCard.answer)}</b><div class="small" style="margin-top:5px">Enter → 下一题</div>`
-    : `<b>${escapeHtml(spellCard.answer)}</b><div class="small" style="margin-top:5px">${escapeHtml(spellCard.note||'')} · Enter → 下一题</div>${newlyFlagged?'<div class="small" style="margin-top:5px">已加入拼写错题单</div>':''}`;
+    ? `<b>${escapeHtml(spellCard.answer)}</b>${meaning}<div class="small" style="margin-top:6px">Enter → 下一题</div>`
+    : `<b>${escapeHtml(spellCard.answer)}</b>${meaning}<div class="small" style="margin-top:6px">${escapeHtml(spellCard.note||'')} · Enter → 下一题</div>${newlyFlagged?'<div class="small" style="margin-top:5px">已加入拼写错题单</div>':''}`;
   f.dataset.checked='1';
   f.dataset.auto=ok?'1':'0';
   mark(spellCard,ok?'good':'again',ok);
