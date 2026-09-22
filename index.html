@@ -306,6 +306,20 @@ function loadSentence(){sentenceCard=pick('sentence');if(!sentenceCard){showEmpt
 function sentenceCheck(reveal=false){if(!sentenceCard)return;const v=$('#sentenceInput').value;const keywords=norm(sentenceCard.answer).split(' ').filter(w=>w.length>4);const got=keywords.filter(w=>norm(v).includes(w));const cover=keywords.length?got.length/keywords.length:0;const f=$('#sentenceFeedback');f.className='feedback show '+(cover>.55?'good':'bad');f.innerHTML=`<b>结构/关键词覆盖约 ${Math.round(cover*100)}%</b><div class="small" style="margin-top:6px">${escapeHtml(sentenceCard.hint||'')}</div>${reveal?`<div class="diff">${escapeHtml(sentenceCard.answer)}</div>`:''}`;$('#sentenceGrade').style.display='flex'}
 $('#checkSentence').onclick=()=>sentenceCheck(false);$('#revealSentence').onclick=()=>sentenceCheck(true);$('#sentenceGrade').onclick=e=>{if(e.target.dataset.grade){mark(sentenceCard,e.target.dataset.grade,null);loadSentence()}}
 
+// logic & examples — explicit DOM refs for Safari/iOS reliability
+const logicMeta=$('#logicMeta'), logicPrompt=$('#logicPrompt'), logicQuestion=$('#logicQuestion');
+const logicGuided=$('#logicGuided'), logicProgress=$('#logicProgress'), logicReference=$('#logicReference');
+const logicPlay=$('#logicPlay'), logicStop=$('#logicStop'), logicRate=$('#logicRate'), logicAudioStatus=$('#logicAudioStatus');
+const logicRevealAll=$('#logicRevealAll'), logicNext=$('#logicNext'), logicGrade=$('#logicGrade');
+
+const exampleMeta=$('#exampleMeta'), exampleCue=$('#exampleCue'), exampleQuestion=$('#exampleQuestion');
+const exampleGuided=$('#exampleGuided'), exampleProgress=$('#exampleProgress'), exampleReference=$('#exampleReference');
+const examplePlay=$('#examplePlay'), exampleStop=$('#exampleStop'), exampleRate=$('#exampleRate'), exampleAudioStatus=$('#exampleAudioStatus');
+const exampleRevealAll=$('#exampleRevealAll'), exampleNext=$('#exampleNext'), exampleGrade=$('#exampleGrade');
+
+function matchesSource(c){return cardInScope(c)}
+function schedule(c,grade){markFamiliar(c,grade)}
+
 // logic & examples — guided Chinese-to-English, one sentence at a time + audio
 function splitEnglishSentences(text){return String(text||'').match(/[^.!?]+[.!?]+(?:[”’"']|$)|[^.!?]+$/g)?.map(x=>x.trim()).filter(Boolean)||[]}
 function splitChineseUnits(text){
