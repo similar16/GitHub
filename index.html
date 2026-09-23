@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-<title>IELTS Recall Lab · 拼写 × 句式 × 逻辑 × 例子</title>
+<title>IELTS Recall Lab · 高级替换 × 拼写 × 句式 × 逻辑</title>
 <style>
 
 :root{
@@ -39,6 +39,25 @@ button,input,textarea,select{font:inherit}.app{display:grid;grid-template-column
 @media(max-width:760px){.reading-grid{grid-template-columns:1fr}.audio-status{width:100%;margin-left:0}.sentence-row span{font-size:13.5px}}
 
 
+
+/* priority synonym sprint */
+.nav button.priority{background:rgba(239,196,92,.13);color:#fff3c9;border:1px solid rgba(239,196,92,.18)}
+.nav button.priority.active{background:var(--yellow);color:var(--charcoal);box-shadow:0 7px 20px rgba(239,196,92,.24)}
+.priority-hero{background:linear-gradient(135deg,#fff4d9 0%,#fffaf1 45%,#edf8f5 100%);border-color:#edd8a5}
+.priority-hero:before{width:78px;background:linear-gradient(90deg,var(--yellow),var(--pink),var(--teal));opacity:1}
+.priority-hero h2{font-size:21px;margin:0 0 7px}.priority-hero .hero-grid{display:grid;grid-template-columns:1.7fr auto;gap:16px;align-items:center}
+.syn-trainer{max-width:900px}.syn-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}
+.syn-kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}.syn-kpi b{display:block;font-size:24px;color:var(--pink2)}.syn-kpi span{font-size:12px;color:var(--muted)}
+.syn-stage{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.syn-stage span{font-size:12px;border-radius:999px;padding:5px 8px;background:#f3eceb;color:#80696e}.syn-stage span.on{background:#dff2ed;color:#2f6f61;font-weight:800}
+.syn-cue{font-size:21px;line-height:1.65;font-weight:850;color:var(--charcoal);margin:4px 0}.syn-base{font-size:13px;color:var(--muted);margin-top:5px}
+.syn-audio-only{display:none;text-align:center;padding:12px 0}.syn-audio-only.show{display:block}.syn-audio-only .play{width:64px;height:64px;border-radius:50%;border:0;background:var(--teal);color:#fff;font-size:24px;cursor:pointer;box-shadow:0 9px 22px rgba(78,175,176,.2)}
+.syn-feedback{display:none;margin-top:12px;border-radius:16px;padding:14px;line-height:1.7}.syn-feedback.show{display:block}.syn-feedback.ok{background:#edf8f3;border:1px solid #cbe7db}.syn-feedback.bad{background:#fff0f0;border:1px solid #efc8c8}
+.syn-word{font-size:25px;font-weight:900;color:var(--teal2);letter-spacing:.2px}.syn-detail{margin-top:10px;padding-top:10px;border-top:1px dashed rgba(80,80,80,.18);display:grid;gap:7px}.syn-detail b{color:var(--pink2)}
+.syn-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.syn-toolbar select{border:1px solid var(--line);background:#fff;border-radius:11px;padding:9px 10px;color:var(--ink)}
+.syn-source-note{background:#fff6e6;border:1px solid #f0dbad;border-radius:13px;padding:10px 12px;font-size:12.5px;line-height:1.65;color:#735d38;margin-top:10px}
+.syn-mini-progress{height:8px;background:#f0e5e5;border-radius:999px;overflow:hidden;margin-top:9px}.syn-mini-progress i{display:block;height:100%;background:linear-gradient(90deg,var(--yellow),var(--pink),var(--teal))}
+@media(max-width:760px){.priority-hero .hero-grid{grid-template-columns:1fr}.syn-kpis{grid-template-columns:repeat(3,1fr)}.syn-cue{font-size:18px}.syn-word{font-size:22px}}
+
 /* guided bilingual familiarization */
 .guided-note{margin:12px 0 14px;padding:11px 13px;border-radius:14px;background:rgba(255,255,255,.74);border:1px solid var(--line);font-size:13px;line-height:1.65;color:var(--muted)}
 .guided-list{display:grid;gap:14px;margin-top:14px}
@@ -63,6 +82,7 @@ button,input,textarea,select{font:inherit}.app{display:grid;grid-template-column
   <div class="palette-mini"><i></i><i></i><i></i><i></i></div>
   <nav class="nav" id="nav">
     <button class="active" data-view="today">今日训练</button>
+    <button class="priority" data-view="synonyms">★ 核心替换</button>
     <button data-view="spelling">拼写急救</button>
     <button data-view="chunks">词块调用</button>
     <button data-view="sentences">句式变形</button>
@@ -80,6 +100,12 @@ button,input,textarea,select{font:inherit}.app{display:grid;grid-template-column
   <section class="view active" id="view-today">
     <div class="top"><div><h1>今天只练“能调用出来”的英语</h1><p>把范文从“看得懂”变成“考试时写得出来”。</p></div><div class="pill" id="todayDate"></div></div>
     <div class="grid">
+      <div class="card span-12 priority-hero">
+        <div class="hero-grid">
+          <div><div class="small" style="font-weight:900;color:var(--pink2)">最重要 · 高频优先</div><h2>高级同义替换极速训练</h2><div class="small muted">不是背“同义词表”：每个词都过 <b>拼写 → 听辨/发音 → 句中使用</b> 三关，并自动优先重练刚错的词。</div><div class="syn-mini-progress"><i id="synHeroProgress" style="width:0%"></i></div><div class="small muted" id="synHeroText" style="margin-top:6px">正在读取掌握度…</div></div>
+          <div><button class="btn secondary" id="startSynHero">开始 6 分钟核心训练</button></div>
+        </div>
+      </div>
       <div class="card span-4"><div class="muted small">今日到期</div><div class="kpi" id="dueKpi">0</div><div class="small muted">按错误频率优先排序</div></div>
       <div class="card span-4"><div class="muted small">近 7 日正确率</div><div class="kpi" id="accKpi">—</div><div class="small muted">正确率只统计拼写 / 词块等主动回忆题</div></div>
       <div class="card span-4"><div class="muted small">连续训练</div><div class="kpi"><span id="streakKpi">0</span> 天</div><div class="small muted">每天完成 ≥ 8 次训练</div></div>
@@ -97,6 +123,30 @@ button,input,textarea,select{font:inherit}.app{display:grid;grid-template-column
       <div class="card span-4"><div class="section-title"><h2>最该救的 5 个</h2></div><div id="weakList" class="list"></div></div>
       <div class="card span-7"><div class="section-title"><h2>训练热度</h2><span class="small muted">最近 14 天</span></div><div class="heat" id="heat"></div></div>
       <div class="card span-5"><div class="section-title"><h2>训练目标</h2></div><div class="small" style="line-height:1.8">不是记住“高级词”，而是做到：<br><b>拼写：</b>听到/想到就能写对。<br><b>句式：</b>换题后仍能自然改写。<br><b>逻辑：</b>先熟悉常见展开顺序，不要求凭空生成。<br><b>例子：</b>看熟“行动 → 结果 → 回扣”骨架，不背机构和数字。</div></div>
+    </div>
+  </section>
+
+  <section class="view" id="view-synonyms">
+    <div class="top"><div><h1>高级同义替换 · 核心训练</h1><p>中文/普通词 → 高级表达；再用听写和句中填词把“会认”变成“会写、会念、会用”。</p></div><div class="pill">三关掌握制</div></div>
+    <div class="card syn-trainer">
+      <div class="syn-toolbar">
+        <label class="small muted">模式 <select id="synMode"><option value="mix">混合三关</option><option value="cue">中文 / 普通词 → 高级词</option><option value="audio">听写 + 发音</option><option value="use">句中填词</option></select></label>
+        <label class="small muted">范围 <select id="synTier"><option value="A">高频必会</option><option value="ALL">全部图片词汇</option></select></label>
+        <label class="small muted">主题 <select id="synGroup"><option value="ALL">全部主题</option></select></label>
+      </div>
+      <div class="syn-kpis"><div class="syn-kpi"><b id="synMastered">0</b><span>三关已掌握</span></div><div class="syn-kpi"><b id="synWeak">0</b><span>待修复</span></div><div class="syn-kpi"><b id="synToday">0</b><span>今日完成</span></div></div>
+      <div class="syn-source-note"><b>这组词来自你上传的 5 张同义替换图片。</b> 其中有些词并不能机械互换，所以这里会同时给出“适用语境 / 易误用点”。</div>
+      <div class="promptbox" style="margin-top:14px">
+        <div class="small muted" id="synMeta"></div>
+        <div class="syn-cue" id="synCue"></div>
+        <div class="syn-base" id="synBase"></div>
+        <div class="syn-audio-only" id="synAudioOnly"><button class="play" id="synPlayMain" aria-label="播放">▶</button><div class="small muted" style="margin-top:8px">只听音频，写出你听到的高级表达</div></div>
+        <div class="syn-stage" id="synStage"></div>
+      </div>
+      <input class="answer" id="synInput" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="输入英文后按 Enter"/>
+      <div class="review-row"><button class="btn" id="synCheck">检查</button><button class="btn ghost" id="synReveal">显示答案</button></div>
+      <div class="syn-feedback" id="synFeedback"></div>
+      <div class="small muted" style="margin-top:10px">第一次 Enter 检查；看完用法后再按 Enter 直接下一题。答错的项目会在几题后自动回来。</div>
     </div>
   </section>
 
